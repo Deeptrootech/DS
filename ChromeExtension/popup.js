@@ -4,6 +4,12 @@ var addButton = document.getElementsByTagName("button")[0]; //first button
 var incompleteTasksHolder = document.getElementById("incomplete-tasks"); //incomplete-tasks
 var completedTasksHolder = document.getElementById("completed-tasks"); //completed-tasks
 
+var today = new Date();
+var dd = String(today.getDate()).padStart(2, '0');
+var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+var yyyy = today.getFullYear();
+today = yyyy + '-' + mm + '-' + dd;
+
 //New Task List Item
 var createNewTaskElement = function(taskString) {
 	//Create List Item
@@ -34,6 +40,9 @@ var createNewTaskElement = function(taskString) {
 	editInput.type = "text";
 	editdate.type = "date";
 
+	if (taskString.set_color == true){
+		listItem.className = 'urgent_task';
+	}
 	editButton.innerText = "Edit";
 	editButton.className = "edit";
 	deleteButton.innerText = "Delete";
@@ -41,7 +50,6 @@ var createNewTaskElement = function(taskString) {
 	datelabel.className = "datelabel"
 	editdate.className = "deadline"
 	
-	console.log("-------------------------------------------",taskString)
 	label.innerText = taskString.todo;
 	datelabel.innerText = taskString.deadline;
 
@@ -60,15 +68,20 @@ var createNewTaskElement = function(taskString) {
 //Add a new task (ListView)
 data = JSON.parse(localStorage.getItem("data")) || []
 if (data !== undefined){
-	for (i=0; i<data.length; i++){
-		c = createNewTaskElement(data[i].todo ? {"todo" : data[i].todo, "deadline" : data[i].deadline} : {"todo" : data[i].completed, "deadline" : data[i].deadline})
-		if (data[i].todo){
-			incompleteTasksHolder.appendChild(c);
+		for (i=0; i<data.length; i++){
+			if (data[i].deadline <= today){
+				c = createNewTaskElement(data[i].todo ? {"todo" : data[i].todo, "deadline" : data[i].deadline, "set_color": true} : {"todo" : data[i].completed, "deadline" : data[i].deadline})
+			}
+			else{
+				c = createNewTaskElement(data[i].todo ? {"todo" : data[i].todo, "deadline" : data[i].deadline} : {"todo" : data[i].completed, "deadline" : data[i].deadline})
+			}
+			if (data[i].todo){
+				incompleteTasksHolder.appendChild(c);
+			}
+			else{
+				completedTasksHolder.appendChild(c);
+			}
 		}
-		else{
-			completedTasksHolder.appendChild(c);
-		}
-	}
 }
 
 var addTask = function() {
@@ -112,13 +125,24 @@ var editTask = function() {
 		data = JSON.parse(localStorage.getItem("data")) || []
 		if (data !== undefined){
 			for (i=0; i<data.length; i++){
-				label.innerText == data[i]['todo'] ? data[i]['todo'] = editInput.value : data[i]['completed'] = editInput.value;
-
-				data[i]['deadline'] = editdate.value;
+				if (data[i]['todo'] == label.innerText){
+					data[i]['todo'] = editInput.value;
+					data[i]['deadline'] = editdate.value;
 					localStorage.removeItem(data);
 					localStorage.setItem("data" , JSON.stringify(data))
+				}
+				else if (data[i]['completed'] == label.innerText){
+					data[i]['completed'] = editInput.value;
+					data[i]['deadline'] = editdate.value;
+					localStorage.removeItem(data);
+					localStorage.setItem("data" , JSON.stringify(data))
+				}				
 			}
 		}
+				
+		// edited date is greater thentoday then remove red background
+		(editdate >= today) ? listItem.classList.remove('urgent_task') : listItem.classList.add('urgent_task');
+		
 		//Switch from .editMode
 		//label text become the input's value
 		label.innerText = editInput.value;
@@ -177,6 +201,10 @@ var taskCompleted = function() {
 		for (i=0; i<data.length; i++){
 			if (data[i]['todo'] == label.innerText){
 				data[i]['completed'] = data[i]['todo'];
+
+				// remove class of red background when task completed
+				listItem.classList.remove('urgent_task')
+
 				delete data[i]['todo'];
 				localStorage.setItem("data" , JSON.stringify(data))
 			}
@@ -208,8 +236,15 @@ var taskIncomplete = function() {
 	data = JSON.parse(localStorage.getItem("data")) || []
 	if (data !== undefined){
 		for (i=0; i<data.length; i++){
+			if (data[i].deadline <= today){}
 			if (data[i]['completed'] == label.innerText){
 				data[i]['todo'] = data[i]['completed'];
+				
+				// add red background task if date is current or before
+				if (data[i].deadline <= today){
+					listItem.classList.add('urgent_task')
+				}
+
 				delete data[i]['completed'];
 				localStorage.setItem("data" , JSON.stringify(data))
 			}

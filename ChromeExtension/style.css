@@ -156,10 +156,18 @@ ul li.editMode input[type=text] {
 }
 ul li.editMode input[type=date] {
 	display: block;
+	margin: 1% 7%;
 }
 ul li.editMode label {
 	display: none;
 }
+.datelabel{
+	margin: 1% 7%;
+}
+.urgent_task{
+	background-color: #ff000014;
+}
+
 
 /* scrollbar */
 ::-webkit-scrollbar {

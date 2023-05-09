@@ -1,5 +1,5 @@
 var taskInput = document.getElementById("new-task"); //new-task
-var deadlineInput = document.getElementById("deadline"); //new-task-deadline
+var deadlineInput = document.getElementsByClassName("deadline"); //new-task-deadline
 var addButton = document.getElementsByTagName("button")[0]; //first button
 var incompleteTasksHolder = document.getElementById("incomplete-tasks"); //incomplete-tasks
 var completedTasksHolder = document.getElementById("completed-tasks"); //completed-tasks
@@ -11,12 +11,20 @@ var createNewTaskElement = function(taskString) {
 
 	//input (checkbox)
 	var checkBox = document.createElement("input"); // checkbox
+
 	//label
 	var label = document.createElement("label");
 	//input (text)
 	var editInput = document.createElement("input"); // text
+	
+	//datelabel
+	var datelabel = document.createElement("label");
+	//input(date)
+	var editdate = document.createElement("input"); // date
+	
 	//button.edit
 	var editButton = document.createElement("button");
+
 	//button.delete
 	var deleteButton = document.createElement("button");
 
@@ -24,18 +32,25 @@ var createNewTaskElement = function(taskString) {
 
 	checkBox.type = "checkbox";
 	editInput.type = "text";
+	editdate.type = "date";
 
 	editButton.innerText = "Edit";
 	editButton.className = "edit";
 	deleteButton.innerText = "Delete";
 	deleteButton.className = "delete";
-
-	label.innerText = taskString;
+	datelabel.className = "datelabel"
+	editdate.className = "deadline"
+	
+	console.log("-------------------------------------------",taskString)
+	label.innerText = taskString.todo;
+	datelabel.innerText = taskString.deadline;
 
 	//Each element needs appending
 	listItem.appendChild(checkBox);
 	listItem.appendChild(label);
 	listItem.appendChild(editInput);
+	listItem.appendChild(datelabel);
+	listItem.appendChild(editdate);
 	listItem.appendChild(editButton);
 	listItem.appendChild(deleteButton);
   
@@ -46,7 +61,7 @@ var createNewTaskElement = function(taskString) {
 data = JSON.parse(localStorage.getItem("data")) || []
 if (data !== undefined){
 	for (i=0; i<data.length; i++){
-		c = createNewTaskElement(data[i].todo ? data[i].todo: data[i].completed)
+		c = createNewTaskElement(data[i].todo ? {"todo" : data[i].todo, "deadline" : data[i].deadline} : {"todo" : data[i].completed, "deadline" : data[i].deadline})
 		if (data[i].todo){
 			incompleteTasksHolder.appendChild(c);
 		}
@@ -61,17 +76,18 @@ var addTask = function() {
 	//Create a new list item with the text from #new-task:
   storeData = localStorage.getItem("data")
   todoArr = storeData ? [...JSON.parse(localStorage.getItem("data"))] : []
-  data = {"todo":taskInput.value, "deadline":deadlineInput.value}
+	debugger;
+  data = {"todo":taskInput.value, "deadline":deadlineInput[0].value}
   todoArr.push(data)
   localStorage.setItem("data", JSON.stringify(todoArr))
-  var listItem = createNewTaskElement(taskInput.value);
+  var listItem = createNewTaskElement(data);
 
 	//Append listItem to incompleteTasksHolder
 	incompleteTasksHolder.appendChild(listItem);
 	bindTaskEvents(listItem, taskCompleted);
 
 	taskInput.value = "";
-	deadlineInput.value = "";
+	deadlineInput[0].value = "";
 
 }
 
@@ -81,40 +97,41 @@ var editTask = function() {
 
 	var listItem = this.parentNode;
 
-	var editInput = listItem.querySelector("input[type=text");
+	var editInput = listItem.querySelector("input[type=text]");
+	var editdate = listItem.querySelector("input[type=date]");
 	var label = listItem.querySelector("label");
+	var datelabel = listItem.getElementsByClassName("datelabel");
 
 	var containsClass = listItem.classList.contains("editMode");
 
 	//if the class of the parent is .editMode
 	if (containsClass) {
 		listItem.querySelector(".edit").innerText = "Edit";
+
 		// get key from local storage and update value
 		data = JSON.parse(localStorage.getItem("data")) || []
 		if (data !== undefined){
 			for (i=0; i<data.length; i++){
-				if (data[i]['todo'] == label.innerText){
-					data[i]['todo'] = editInput.value;
+				label.innerText == data[i]['todo'] ? data[i]['todo'] = editInput.value : data[i]['completed'] = editInput.value;
+
+				data[i]['deadline'] = editdate.value;
 					localStorage.removeItem(data);
 					localStorage.setItem("data" , JSON.stringify(data))
-				}
-				else if (data[i]['completed'] == label.innerText){
-					data[i]['completed'] = editInput.value;
-					localStorage.removeItem(data);
-					localStorage.setItem("data" , JSON.stringify(data))
-				}
 			}
 		}
 		//Switch from .editMode
 		//label text become the input's value
 		label.innerText = editInput.value;
+		datelabel[0].innerText = editdate.value;
 
 
 	} else {
 		listItem.querySelector(".edit").innerText = "Save";
 		//Switch to .editMode
 		//input value becomes the label's text
+		
 		editInput.value = label.innerText;
+		editdate.value = datelabel[0].innerText;
 	}
 
 	//Toggle .editMode on the list item
@@ -124,7 +141,6 @@ var editTask = function() {
 
 //Delete an existing task
 var deleteTask = function() {
-	debugger;
 	console.log("Delete task...");
 	var listItem = this.parentNode;
 	var ul = listItem.parentNode;

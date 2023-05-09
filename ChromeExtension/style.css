@@ -30,7 +30,7 @@ li * {
 	float: left;
 }
 
-li,
+div,
 h3 {
 	clear: both;
 	list-style: none;
@@ -148,11 +148,15 @@ li > input[type="text"] {
 ul li input[type=text] {
 	display: none;
 }
-
+ul li input[type=date] {
+	display: none;
+}
 ul li.editMode input[type=text] {
 	display: block;
 }
-
+ul li.editMode input[type=date] {
+	display: block;
+}
 ul li.editMode label {
 	display: none;
 }
@@ -206,7 +210,7 @@ ul li.editMode label {
 #new-task-deadline label {
   display: block;
 }
-#new-task-deadline input {
+.deadline{
 	font-size: 16px;
 	height: 14px;
 	padding: 10px;

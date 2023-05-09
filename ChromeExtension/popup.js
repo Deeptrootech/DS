@@ -10,6 +10,15 @@ var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
 var yyyy = today.getFullYear();
 today = yyyy + '-' + mm + '-' + dd;
 
+
+var get_sorted_todos = function(){
+	data = JSON.parse(localStorage.getItem("data")) || []
+	// var sorted_data = 
+	return data.sort((a,b) => (new Date(a.deadline) > new Date(b.deadline)) ? 1 : ((new Date(b.deadline) > new Date(a.deadline)) ? -1 : 0))
+}
+
+
+
 //New Task List Item
 var createNewTaskElement = function(taskString) {
 	//Create List Item
@@ -67,16 +76,17 @@ var createNewTaskElement = function(taskString) {
 }
 
 //Add a new task (ListView)
-data = JSON.parse(localStorage.getItem("data")) || []
-if (data !== undefined){
-		for (i=0; i<data.length; i++){
-			if (data[i].deadline <= today){
-				c = createNewTaskElement(data[i].todo ? {"todo" : data[i].todo, "deadline" : data[i].deadline, "set_color": true} : {"todo" : data[i].completed, "deadline" : data[i].deadline})
+var sorted_data = get_sorted_todos()
+
+if (sorted_data !== undefined){
+		for (i=0; i<sorted_data.length; i++){
+			if (sorted_data[i].deadline <= today){
+				c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline, "set_color": true} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
 			}
 			else{
-				c = createNewTaskElement(data[i].todo ? {"todo" : data[i].todo, "deadline" : data[i].deadline} : {"todo" : data[i].completed, "deadline" : data[i].deadline})
+				c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
 			}
-			if (data[i].todo){
+			if (sorted_data[i].todo){
 				incompleteTasksHolder.appendChild(c);
 			}
 			else{
@@ -90,7 +100,6 @@ var addTask = function() {
 	//Create a new list item with the text from #new-task:
   storeData = localStorage.getItem("data")
   todoArr = storeData ? [...JSON.parse(localStorage.getItem("data"))] : []
-	debugger;
   data = {"todo":taskInput.value, "deadline":deadlineInput[0].value}
   todoArr.push(data)
   localStorage.setItem("data", JSON.stringify(todoArr))
@@ -123,7 +132,8 @@ var editTask = function() {
 		listItem.querySelector(".edit").innerText = "Edit";
 
 		// get key from local storage and update value
-		data = JSON.parse(localStorage.getItem("data")) || []
+		// data = JSON.parse(localStorage.getItem("data")) || []
+		var data = get_sorted_todos()
 		if (data !== undefined){
 			for (i=0; i<data.length; i++){
 				if (data[i]['todo'] == label.innerText){
@@ -171,7 +181,8 @@ var deleteTask = function() {
 	var ul = listItem.parentNode;
 	var label = listItem.querySelector("label");
 	// delete from localStorage
-	data = JSON.parse(localStorage.getItem("data")) || []
+	// data = JSON.parse(localStorage.getItem("data")) || []
+	var data = get_sorted_todos()
 	for (i=0; i<=data.length; i++){
 		if (data[i] !== undefined){
 			if (data[i]['todo'] == label.innerText){
@@ -197,7 +208,8 @@ var taskCompleted = function() {
 	var label = listItem.querySelector("label");
 
 	// local storage update (todo to complete)
-	data = JSON.parse(localStorage.getItem("data")) || []
+	// data = JSON.parse(localStorage.getItem("data")) || []
+	var data = get_sorted_todos()
 	if (data !== undefined){
 		for (i=0; i<data.length; i++){
 			if (data[i]['todo'] == label.innerText){
@@ -234,7 +246,8 @@ var taskIncomplete = function() {
 
 
 	// local storage update (complete to todo)
-	data = JSON.parse(localStorage.getItem("data")) || []
+	// data = JSON.parse(localStorage.getItem("data")) || []
+	var data = get_sorted_todos()
 	if (data !== undefined){
 		for (i=0; i<data.length; i++){
 			if (data[i].deadline <= today){}

@@ -32,6 +32,7 @@ var createNewTaskElement = function(taskString) {
 	var editButton = document.createElement("button");
 
 	//button.delete
+	
 	var deleteButton = document.createElement("button");
 
 	//Each element needs modifying

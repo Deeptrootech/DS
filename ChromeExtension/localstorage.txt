@@ -11,31 +11,17 @@ var yyyy = today.getFullYear();
 today = yyyy + '-' + mm + '-' + dd;
 
 
-
-// get todo list data from chrome storage
-var get_todo_data = function(){
-	return new Promise((resolve, reject) => {
-    chrome.storage.sync.get('data', function(result) {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-	// return chrome.storage.sync.get('data')
+var get_sorted_todos = function(){
+	data = JSON.parse(localStorage.getItem("data")) || []
+	// var sorted_data = 
+	return data.sort((a,b) => (new Date(a.deadline) > new Date(b.deadline)) ? 1 : ((new Date(b.deadline) > new Date(a.deadline)) ? -1 : 0))
 }
 
-// set new data into todo list to chrome storage
-var set_new_todo_data = function(new_dict_data){
-	chrome.storage.sync.set({"data":new_dict_data})
-}
-
-function clear_storage(){chrome.storage.sync.clear(function() {
-  console.log('Data cleared successfully');
-	});
-}
-
+// chrome.storage.local.set({"TodoData":[{"todo":"f","deadline":"2023-05-09"},{"todo":"sfgds","deadline":"2023-05-09"},{"deadline":"2023-05-10","todo":"a"},{"todo":"qd","deadline":"2023-05-12"},{"deadline":"2023-05-13","todo":"fsafsa"},{"deadline":"2023-05-21","todo":"dgdsgds"},{"deadline":"2023-05-24","todo":"dgdsgdsa"},{"deadline":"2023-05-28","todo":"wtasdgds"},{"todo":"fefas","deadline":"2023-06-06"},{"todo":"","deadline":""},{"todo":"sf","deadline":"2023-05-17"}]});
+// chrome.storage.local.get('TodoData', function(data) {
+//   // check if data exists.
+// 	console.log(data);
+// });
 
 //New Task List Item
 var createNewTaskElement = function(taskString) {
@@ -43,7 +29,7 @@ var createNewTaskElement = function(taskString) {
 	var listItem = document.createElement("li");
 
 	//input (checkbox)
-	var checkBox = document.createElement("input"); // checkbrox
+	var checkBox = document.createElement("input"); // checkbox
 	var checkBox = document.createElement("input"); // checkbox
 
 	//label
@@ -69,10 +55,12 @@ var createNewTaskElement = function(taskString) {
 	//button.edit
 	var editButton = document.createElement("button");
 
-	//button.delete	
+	//button.delete
+	
 	var deleteButton = document.createElement("button");
 
 	//Each element needs modifying
+
 	checkBox.type = "checkbox";
 	editInput.type = "text";
 	editdate.type = "date";
@@ -84,15 +72,11 @@ var createNewTaskElement = function(taskString) {
 	editButton.className = "edit";
 	deleteButton.innerText = "Delete";
 	deleteButton.className = "delete";
-	datelabel.className = "datelabel";
-	editdate.className = "deadline";
+	datelabel.className = "datelabel"
+	editdate.className = "deadline"
 	
 	label.innerText = taskString.todo;
 	datelabel.innerText = taskString.deadline;
-
-	
-	editButton.addEventListener("click", editTask);
-	deleteButton.addEventListener("click", deleteTask);
 
 	//Each element needs appending
 	listItem.appendChild(checkBox);
@@ -107,51 +91,34 @@ var createNewTaskElement = function(taskString) {
 }
 
 //Add a new task (ListView)
-async function listTask() {
-	const result = await get_todo_data();
-	// promise_data.then((result) => {
-		// sort data ascending by deadline
-		const data = result.data || [];
-		var sorted_data = data.sort((a,b) => (new Date(a.deadline) > new Date(b.deadline)) ? 1 : ((new Date(b.deadline) > new Date(a.deadline)) ? -1 : 0));
+var sorted_data = get_sorted_todos()
 
-		// add dta one by one from sorted_data array
-		if (sorted_data !== undefined){
-				for (i=0; i<sorted_data.length; i++){
-					if (sorted_data[i].deadline <= today){
-						c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline, "set_color": true} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
-					}
-					else{
-						c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
-					}
-					if (sorted_data[i].todo){
-						console.log("__________________________________)", sorted_data[i], incompleteTasksHolder)
-						incompleteTasksHolder.appendChild(c);
-					}
-					else{
-						completedTasksHolder.appendChild(c);
-					}
-				}
+if (sorted_data !== undefined){
+		for (i=0; i<sorted_data.length; i++){
+			if (sorted_data[i].deadline <= today){
+				c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline, "set_color": true} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
 			}
-			
-	// });
+			else{
+				c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
+			}
+			if (sorted_data[i].todo){
+				incompleteTasksHolder.appendChild(c);
+			}
+			else{
+				completedTasksHolder.appendChild(c);
+			}
+		}
 }
-listTask();
 
-
-//Add a new task (CreateView)
-async function addTask() {
+var addTask = function() {
 	console.log("Add task...");
 	//Create a new list item with the text from #new-task:
-	const result = await get_todo_data()
-	storeData = result.data
-	console.log("origional2-------------->", storeData)
-	todoArr = storeData ? [...storeData] : []
-	data = {"todo":taskInput.value, "deadline":deadlineInput[0].value}
-	todoArr.push(data)
-	
-	await set_new_todo_data(todoArr)
-
-	var listItem = createNewTaskElement(data);
+  storeData = localStorage.getItem("data")
+  todoArr = storeData ? [...JSON.parse(localStorage.getItem("data"))] : []
+  data = {"todo":taskInput.value, "deadline":deadlineInput[0].value}
+  todoArr.push(data)
+  localStorage.setItem("data", JSON.stringify(todoArr))
+  var listItem = createNewTaskElement(data);
 
 	//Append listItem to incompleteTasksHolder
 	incompleteTasksHolder.appendChild(listItem);
@@ -159,90 +126,87 @@ async function addTask() {
 
 	taskInput.value = "";
 	deadlineInput[0].value = "";
+
 }
 
 //Edit an existing task
-async function editTask() {
+var editTask = function() {
 	console.log("Edit task...");
-	// promise_data.then((result) => {
-		const result = await get_todo_data()
-		data = result.data
-		var listItem = this.parentNode;
-		var editInput = listItem.querySelector("input[type=text]");
-		var editdate = listItem.querySelector("input[type=date]");
-		var label = listItem.querySelector("label");
-		var datelabel = listItem.getElementsByClassName("datelabel");
 
-		var containsClass = listItem.classList.contains("editMode");
+	var listItem = this.parentNode;
 
-		//if the class of the parent is .editMode
-		if (containsClass) {
-			listItem.querySelector(".edit").innerText = "Edit";
+	var editInput = listItem.querySelector("input[type=text]");
+	var editdate = listItem.querySelector("input[type=date]");
+	var label = listItem.querySelector("label");
+	var datelabel = listItem.getElementsByClassName("datelabel");
 
-			// get key from local storage and update value
+	var containsClass = listItem.classList.contains("editMode");
 
-				if (data !== undefined){
-					for (i=0; i<data.length; i++){
-						if (data[i]['todo'] == label.innerText){
-							data[i]['todo'] = editInput.value;
-							data[i]['deadline'] = editdate.value;
-							clear_storage()
-							set_new_todo_data(data);
-						}
-						else if (data[i]['completed'] == label.innerText){
-							data[i]['completed'] = editInput.value;
-							data[i]['deadline'] = editdate.value;
-							clear_storage()
-							set_new_todo_data(data);
-						}				
-					}
+	//if the class of the parent is .editMode
+	if (containsClass) {
+		listItem.querySelector(".edit").innerText = "Edit";
+
+		// get key from local storage and update value
+		// data = JSON.parse(localStorage.getItem("data")) || []
+		var data = get_sorted_todos()
+		if (data !== undefined){
+			for (i=0; i<data.length; i++){
+				if (data[i]['todo'] == label.innerText){
+					data[i]['todo'] = editInput.value;
+					data[i]['deadline'] = editdate.value;
+					localStorage.removeItem(data);
+					localStorage.setItem("data" , JSON.stringify(data))
 				}
-
-			// edited date is greater thentoday then remove red background
-			(editdate >= today) ? listItem.classList.remove('urgent_task') : listItem.classList.add('urgent_task');
-			
-			//Switch from .editMode
-			//label text become the input's value
-			label.innerText = editInput.value;
-			datelabel[0].innerText = editdate.value;
-
-
-		} else {
-			listItem.querySelector(".edit").innerText = "Save";
-			//Switch to .editMode
-			//input value becomes the label's text
-			
-			editInput.value = label.innerText;
-			editdate.value = datelabel[0].innerText;
+				else if (data[i]['completed'] == label.innerText){
+					data[i]['completed'] = editInput.value;
+					data[i]['deadline'] = editdate.value;
+					localStorage.removeItem(data);
+					localStorage.setItem("data" , JSON.stringify(data))
+				}				
+			}
 		}
+				
+		// edited date is greater thentoday then remove red background
+		(editdate >= today) ? listItem.classList.remove('urgent_task') : listItem.classList.add('urgent_task');
+		
+		//Switch from .editMode
+		//label text become the input's value
+		label.innerText = editInput.value;
+		datelabel[0].innerText = editdate.value;
 
-		//Toggle .editMode on the list item
-		listItem.classList.toggle("editMode");
-// })
+
+	} else {
+		listItem.querySelector(".edit").innerText = "Save";
+		//Switch to .editMode
+		//input value becomes the label's text
+		
+		editInput.value = label.innerText;
+		editdate.value = datelabel[0].innerText;
+	}
+
+	//Toggle .editMode on the list item
+	listItem.classList.toggle("editMode");
+
 }
 
 //Delete an existing task
-async function deleteTask() {
+var deleteTask = function() {
 	console.log("Delete task...");
 	var listItem = this.parentNode;
 	var ul = listItem.parentNode;
 	var label = listItem.querySelector("label");
 	// delete from localStorage
 	// data = JSON.parse(localStorage.getItem("data")) || []
-	// var data = get_todo_data()
-	const result = await get_todo_data()
-	data = result.data
+	var data = get_sorted_todos()
 	for (i=0; i<=data.length; i++){
 		if (data[i] !== undefined){
 			if (data[i]['todo'] == label.innerText){
 				data.splice(i,1)
-				// localStorage.setItem("data" , JSON.stringify(data))
-				set_new_todo_data(data);
+				localStorage.setItem("data" , JSON.stringify(data))
 			}
 			else if (data[i]['completed'] == label.innerText){
 				data.splice(i,1)
-				// localStorage.setItem("data" , JSON.stringify(data))
-				set_new_todo_data(data);
+				localStorage.setItem("data" , JSON.stringify(data))
 			}
 		}
 	}
@@ -252,16 +216,15 @@ async function deleteTask() {
 }
 
 //Mark a task as complete
-async function taskCompleted() {
+var taskCompleted = function() {
 	console.log("Task complete...");
 	//Append the task list item to the #completed-tasks
 	var listItem = this.parentNode;
 	var label = listItem.querySelector("label");
 
-	// chrome storage update (todo to complete)
+	// local storage update (todo to complete)
 	// data = JSON.parse(localStorage.getItem("data")) || []
-	const result = await get_todo_data()
-	data = result.data
+	var data = get_sorted_todos()
 	if (data !== undefined){
 		for (i=0; i<data.length; i++){
 			if (data[i]['todo'] == label.innerText){
@@ -271,8 +234,7 @@ async function taskCompleted() {
 				listItem.classList.remove('urgent_task')
 
 				delete data[i]['todo'];
-				await set_new_todo_data(data)
-				// localStorage.setItem("data" , JSON.stringify(data))
+				localStorage.setItem("data" , JSON.stringify(data))
 			}
 		}
 	}
@@ -291,7 +253,7 @@ async function taskCompleted() {
 
 
 //Mark a task as incomplete
-async function taskIncomplete() {
+var taskIncomplete = function() {
 	console.log("Task incomplete...");
 	//Append the task list item to the #incomplete-tasks
 	var listItem = this.parentNode;
@@ -300,8 +262,7 @@ async function taskIncomplete() {
 
 	// local storage update (complete to todo)
 	// data = JSON.parse(localStorage.getItem("data")) || []
-	const result = await get_todo_data()
-	data = result.data
+	var data = get_sorted_todos()
 	if (data !== undefined){
 		for (i=0; i<data.length; i++){
 			if (data[i].deadline <= today){}
@@ -314,8 +275,7 @@ async function taskIncomplete() {
 				}
 
 				delete data[i]['completed'];
-				// localStorage.setItem("data" , JSON.stringify(data))
-				await set_new_todo_data(data)
+				localStorage.setItem("data" , JSON.stringify(data))
 			}
 		}
 	}
@@ -324,7 +284,7 @@ async function taskIncomplete() {
 	bindTaskEvents(listItem, taskCompleted);
 }
 
-function bindTaskEvents(taskListItem, checkBoxEventHandler) {
+var bindTaskEvents = function(taskListItem, checkBoxEventHandler) {
 	console.log("Bind list item events");
 	//select taskListItem's children
 	var checkBox = taskListItem.querySelector("input[type=checkbox]");

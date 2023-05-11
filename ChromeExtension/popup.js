@@ -44,7 +44,7 @@ var createNewTaskElement = function(taskString) {
 
 	//input (checkbox)
 	var checkBox = document.createElement("input"); // checkbrox
-	var checkBox = document.createElement("input"); // checkbox
+	// var checkBox = document.createElement("input"); // checkbox
 
 	//label
 	var label = document.createElement("label");
@@ -93,6 +93,8 @@ var createNewTaskElement = function(taskString) {
 	
 	editButton.addEventListener("click", editTask);
 	deleteButton.addEventListener("click", deleteTask);
+	// checkBox.addEventListener("click", taskIncomplete);
+	checkBox.addEventListener("click", taskCompleted);
 
 	//Each element needs appending
 	listItem.appendChild(checkBox);
@@ -119,9 +121,11 @@ async function listTask() {
 				for (i=0; i<sorted_data.length; i++){
 					if (sorted_data[i].deadline <= today){
 						c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline, "set_color": true} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
+						// bindTaskEvents(c, taskIncomplete);
 					}
 					else{
 						c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
+						// bindTaskEvents(c, taskCompleted);
 					}
 					if (sorted_data[i].todo){
 						console.log("__________________________________)", sorted_data[i], incompleteTasksHolder)
@@ -144,22 +148,36 @@ async function addTask() {
 	//Create a new list item with the text from #new-task:
 	const result = await get_todo_data()
 	storeData = result.data
-	console.log("origional2-------------->", storeData)
-	todoArr = storeData ? [...storeData] : []
-	data = {"todo":taskInput.value, "deadline":deadlineInput[0].value}
-	todoArr.push(data)
+	todoArr = storeData ? [...storeData] : [] 
 	
-	await set_new_todo_data(todoArr)
+	if (taskInput.value.trim() !== "" && taskInput !== undefined){
+			data = {"todo":taskInput.value.trim(), "deadline":deadlineInput[0].value}
+			todoArr.push(data)
+			set_new_todo_data(todoArr)
+			var listItem = createNewTaskElement(data, taskCompleted);
 
-	var listItem = createNewTaskElement(data);
+			//Append listItem to incompleteTasksHolder
+			incompleteTasksHolder.appendChild(listItem);
+			// bindTaskEvents(listItem, taskCompleted);
+			// var checkBox = listItem.querySelector("input[type=checkbox]");
+			// console.log("______________________---------------------->",checkBox);
+			// checkBox.addEventListener("click", taskCompleted);
+		}
+		else{
+			var notifoption = {
+				type: 'basic',
+				iconUrl: 'icon1.png',
+				title: 'Empty Task',
+				message: 'Please, Enter Proper Task name..!!',
+			}
+			chrome.notifications.create("complete_task",notifoption);
+		}
 
-	//Append listItem to incompleteTasksHolder
-	incompleteTasksHolder.appendChild(listItem);
-	bindTaskEvents(listItem, taskCompleted);
-
-	taskInput.value = "";
-	deadlineInput[0].value = "";
+		taskInput.value = "";
+		deadlineInput[0].value = "";
 }
+
+
 
 //Edit an existing task
 async function editTask() {
@@ -187,13 +205,13 @@ async function editTask() {
 							data[i]['todo'] = editInput.value;
 							data[i]['deadline'] = editdate.value;
 							clear_storage()
-							set_new_todo_data(data);
+							await set_new_todo_data(data);
 						}
 						else if (data[i]['completed'] == label.innerText){
 							data[i]['completed'] = editInput.value;
 							data[i]['deadline'] = editdate.value;
 							clear_storage()
-							set_new_todo_data(data);
+							await set_new_todo_data(data);
 						}				
 					}
 				}
@@ -237,12 +255,16 @@ async function deleteTask() {
 			if (data[i]['todo'] == label.innerText){
 				data.splice(i,1)
 				// localStorage.setItem("data" , JSON.stringify(data))
-				set_new_todo_data(data);
+				clear_storage()
+				await set_new_todo_data(data);
+				break;
 			}
 			else if (data[i]['completed'] == label.innerText){
 				data.splice(i,1)
 				// localStorage.setItem("data" , JSON.stringify(data))
-				set_new_todo_data(data);
+				clear_storage()
+				await set_new_todo_data(data);
+				break;
 			}
 		}
 	}
@@ -278,7 +300,9 @@ async function taskCompleted() {
 	}
 
 	completedTasksHolder.appendChild(listItem);
-	bindTaskEvents(listItem, taskIncomplete);	
+	await bindTaskEvents(listItem, taskIncomplete);	
+	// var checkBox = listItem.querySelector("input[type=checkbox]");
+	// checkBox.addEventListener("click", taskIncomplete);
 	var notifoption = {
 		type: 'basic',
 		iconUrl: 'icon1.png',
@@ -321,29 +345,19 @@ async function taskIncomplete() {
 	}
 
 	incompleteTasksHolder.appendChild(listItem);
-	bindTaskEvents(listItem, taskCompleted);
+	await bindTaskEvents(listItem, taskCompleted);
+	// var checkBox = listItem.querySelector("input[type=checkbox]");
+	// checkBox.addEventListener("click", taskCompleted);
 }
 
 function bindTaskEvents(taskListItem, checkBoxEventHandler) {
 	console.log("Bind list item events");
 	//select taskListItem's children
 	var checkBox = taskListItem.querySelector("input[type=checkbox]");
-	var editButton = taskListItem.querySelector("button.edit");
-	var deleteButton = taskListItem.querySelector("button.delete");
-
-	//bind editTask to edit button
-	editButton.onclick = editTask;
-
-	//bind deleteTask to delete button
-	deleteButton.onclick = deleteTask;
 
 	//bind checkBoxEventHandler to checkbox
 	checkBox.onchange = checkBoxEventHandler;
 }
-
-// var ajaxRequest = function() {
-// 	console.log("AJAX request");
-// }
 
 //Set the click handler to the addTask function
 addButton.addEventListener("click", addTask);

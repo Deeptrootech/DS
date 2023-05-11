@@ -166,9 +166,6 @@ async function addTask() {
 			//Append listItem to incompleteTasksHolder
 			incompleteTasksHolder.appendChild(listItem);
 			// bindTaskEvents(listItem, taskCompleted);
-			// var checkBox = listItem.querySelector("input[type=checkbox]");
-			// console.log("______________________---------------------->",checkBox);
-			// checkBox.addEventListener("click", taskCompleted);
 		}
 		else{
 			var notifoption = {

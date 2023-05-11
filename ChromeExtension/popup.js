@@ -93,8 +93,16 @@ var createNewTaskElement = function(taskString) {
 	
 	editButton.addEventListener("click", editTask);
 	deleteButton.addEventListener("click", deleteTask);
-	// checkBox.addEventListener("click", taskIncomplete);
-	checkBox.addEventListener("click", taskCompleted);
+
+	// binding checkbox respective to complete and pending tasks
+	if (taskString.bind == "taskCompleted"){
+
+		checkBox.addEventListener("click", taskCompleted);
+	}
+	else{
+		checkBox.addEventListener("click", taskIncomplete);
+
+	}
 
 	//Each element needs appending
 	listItem.appendChild(checkBox);
@@ -120,15 +128,14 @@ async function listTask() {
 		if (sorted_data !== undefined){
 				for (i=0; i<sorted_data.length; i++){
 					if (sorted_data[i].deadline <= today){
-						c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline, "set_color": true} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
+						c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline, "set_color": true, "bind" : "taskCompleted"} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
 						// bindTaskEvents(c, taskIncomplete);
 					}
 					else{
-						c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
+						c = createNewTaskElement(sorted_data[i].todo ? {"todo" : sorted_data[i].todo, "deadline" : sorted_data[i].deadline, "bind" : "taskCompleted"} : {"todo" : sorted_data[i].completed, "deadline" : sorted_data[i].deadline})
 						// bindTaskEvents(c, taskCompleted);
 					}
 					if (sorted_data[i].todo){
-						console.log("__________________________________)", sorted_data[i], incompleteTasksHolder)
 						incompleteTasksHolder.appendChild(c);
 					}
 					else{
@@ -151,7 +158,7 @@ async function addTask() {
 	todoArr = storeData ? [...storeData] : [] 
 	
 	if (taskInput.value.trim() !== "" && taskInput !== undefined){
-			data = {"todo":taskInput.value.trim(), "deadline":deadlineInput[0].value}
+			data = {"todo":taskInput.value.trim(), "deadline":deadlineInput[0].value, "bind" : "taskCompleted"}
 			todoArr.push(data)
 			set_new_todo_data(todoArr)
 			var listItem = createNewTaskElement(data, taskCompleted);

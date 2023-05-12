@@ -64,7 +64,7 @@ chrome.storage.onChanged.addListener(function (changes) {
       });
       console.log(result.data.length)
       chrome.action.setBadgeText( { "text" : count.toString() } );
-      chrome.action.setBadgeBackgroundColor({ color: '#F00' })
+      chrome.action.setBadgeBackgroundColor({ color: '#ff7b7b' })
   // chrome.action.setBadgeText({ });
     }
   })

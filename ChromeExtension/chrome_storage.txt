@@ -1,3 +1,6 @@
+************ No use of this file ****************
+
+
 var taskInput = document.getElementById("new-task"); //new-task
 var deadlineInput = document.getElementsByClassName("deadline"); //new-task-deadline
 var addButton = document.getElementsByTagName("button")[0]; //first button

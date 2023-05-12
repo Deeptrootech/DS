@@ -12,6 +12,7 @@ chrome.contextMenus.create(contextMenuItem);
 chrome.contextMenus.onClicked.addListener(function(clickData){
   if(clickData.menuItemId == "addTODO" && clickData.selectionText) {
     if (clickData.selectionText.trim() !== ""){
+      // get all data from storage
       chrome.storage.sync.get('data', function(result) {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
@@ -24,6 +25,8 @@ chrome.contextMenus.onClicked.addListener(function(clickData){
 
           data = {"todo":clickData.selectionText.trim(), "deadline":today_date_string, "bind" : "taskCompleted"}
           todoArr.push(data)
+          // add new todo test selected by user along with today's date 
+          // and push new updated array into storage
           chrome.storage.sync.set({"data":todoArr}, function(){
             var addnotify = {
               type: 'basic',
@@ -55,17 +58,14 @@ chrome.storage.onChanged.addListener(function (changes) {
     if (chrome.runtime.lastError) {
       reject(chrome.runtime.lastError);
     } else {
-      // debugger;
       var count =0 
       result.data.forEach(element => {
         if (element.todo !== undefined){
           count+=1
         }
       });
-      console.log(result.data.length)
       chrome.action.setBadgeText( { "text" : count.toString() } );
       chrome.action.setBadgeBackgroundColor({ color: '#ff7b7b' })
-  // chrome.action.setBadgeText({ });
     }
   })
 });
